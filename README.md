@@ -1,0 +1,1 @@
+This is for learning Python FastAPI course by FreeCodeCamp: https://youtu.be/0sOvCWFmrtA?feature=shared
