@@ -39,7 +39,8 @@ def create_posts(post : PostBody) :
 
     all_posts.append(post_dict)
 
-    # This is good, but we can do in decorator too, response.status_code = status.HTTP_201_CREATED
+    # This is good, but we can do in decorator too, 
+    # response.status_code = status.HTTP_201_CREATED
 
     return {"post_data" : post_dict}
 
@@ -65,7 +66,8 @@ def get_post_by_id (id: int, resp: Response) :
     return {"detail": f"post with id : {id} not found"}
 
     '''
-    raise HTTPException (status_code= status.HTTP_404_NOT_FOUND, detail= f"post with id : {id} not found")
+    raise HTTPException (status_code= status.HTTP_404_NOT_FOUND, 
+                         detail= f"post with id : {id} not found")
 
 ### DELETE Requests ####
 
