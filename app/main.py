@@ -31,7 +31,7 @@ def get_posts() :
     return {"Hey user, posts are" : all_posts}
 
 @app.post("/posts", status_code= status.HTTP_201_CREATED)
-def create_posts(post : PostBody) :
+def create_posts(post: PostBody) :
 
     post_dict = post.model_dump()
     
@@ -54,7 +54,7 @@ def find_by_id (id: int) :
     return None
 
 @app.get("/posts/{id}")         # 'id' is a path parameter
-def get_post_by_id (id: int, resp: Response) :
+def get_post_by_id (id: int) :  # add this to use hardcode resp -> (resp: Response) 
     post = find_by_id (id)
 
     if post != None:
@@ -94,7 +94,7 @@ def delete_post_by_id(id: int):
 
 ### UPDATE/PUT Requests ###
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", status_code = status.HTTP_200_OK)
 def update_by_id (id: int, post: PostBody) :
     post_idx = find_post(id)
 
