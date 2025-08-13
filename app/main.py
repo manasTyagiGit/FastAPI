@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 from random import randrange
 # for schema validation
@@ -7,6 +7,12 @@ from pydantic import BaseModel
 import psycopg2                         # for connection to DB
 from psycopg2.extras import RealDictCursor
 import time
+from . import models
+from .database import engine, get_db
+from sqlalchemy.orm import Session
+
+#To create all models via the engine in database.py
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -45,6 +51,12 @@ while conn_try_count < 3 :
 all_posts = [{"title": "title of post 1", "content": "content of post 1", "id" : 1},
              {"title": "title of post 2", "content": "content of post 2", "id" : 2}
             ]
+
+
+# TESTING THE SQLALCHEMY ORM STUFF
+@app.get("/sqlalchemy")
+def test_sqlorm(db: Session = Depends(get_db)) :
+    return {"status" : "success"}
 
 
 @app.get("/")
