@@ -23,7 +23,7 @@ class PostBody (BaseModel) :
     #Defaultable optional
     published: bool = True
     #Truly Optional
-    rating: Optional[int] = None
+    #rating: Optional[int] = None
 
 ### CONNECTION TO DATABASE ###
 
@@ -56,7 +56,8 @@ all_posts = [{"title": "title of post 1", "content": "content of post 1", "id" :
 # TESTING THE SQLALCHEMY ORM STUFF
 @app.get("/sqlalchemy")
 def test_sqlorm(db: Session = Depends(get_db)) :
-    return {"status" : "success"}
+    posts = db.query(models.Post).all()
+    return {"posts" : posts}
 
 
 @app.get("/")
@@ -72,7 +73,7 @@ def get_posts() :
     return {"Hey user, posts are" : posts}
 
 @app.post("/posts", status_code= status.HTTP_201_CREATED)
-def create_posts(post: PostBody) :
+def create_posts(post: PostBody, db: Session = Depends(get_db)) :
 
     # post_dict = post.model_dump()
     
@@ -89,14 +90,22 @@ def create_posts(post: PostBody) :
 
     # USE this method
 
-    cursor.execute("""INSERT INTO posts(title, content, published) 
-                   VALUES (%s, %s, %s) RETURNING *""", 
-                   (post.title, post.content, post.published))
+    # cursor.execute("""INSERT INTO posts(title, content, published) 
+    #                VALUES (%s, %s, %s) RETURNING *""", 
+    #                (post.title, post.content, post.published))
     
-    created_post = cursor.fetchone()
+    # created_post = cursor.fetchone()
     
-    conn.commit()
+    # conn.commit()
 
+    #created_post = models.Post(title = post.title, content = post.content, published = post.published)
+
+    # instead of the above, we can also use :
+    created_post = models.Post(**post.model_dump()) #which unpacks a dictionary
+
+    db.add(created_post)
+    db.commit()
+    db.refresh(created_post)
 
     return {"post_data" : created_post}
 
@@ -110,12 +119,14 @@ def find_by_id (id: int) :
     return None
 
 @app.get("/posts/{id}")         # 'id' is a path parameter
-def get_post_by_id (id: int) :  # add this to use hardcode resp -> (resp: Response)
+def get_post_by_id (id: int, db: Session = Depends(get_db)) :  # add this to use hardcode resp -> (resp: Response)
     
-    cursor.execute ("""SELECT * FROM posts where id = %s""", (str(id)))
-    post = cursor.fetchone()
+    # cursor.execute ("""SELECT * FROM posts where id = %s""", (str(id)))
+    # post = cursor.fetchone()
 
     # post = find_by_id (id)
+
+    post = db.query(models.Post).filter(models.Post.id == id).first()
 
     if not post :
         raise HTTPException (status_code= status.HTTP_404_NOT_FOUND, 
@@ -141,16 +152,20 @@ def find_post(id: int):
     return None
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post_by_id(id: int):
+def delete_post_by_id(id: int, db: Session = Depends(get_db)):
 
-    cursor.execute ("""DELETE FROM posts where id = %s RETURNING *""", (str(id)))
-    post_idx = cursor.fetchone()  
+    # cursor.execute ("""DELETE FROM posts where id = %s RETURNING *""", (str(id)))
+    # post_idx = cursor.fetchone()  
 
-    conn.commit()  
+    # conn.commit() 
+
+    post_idx = db.query(models.Post).filter(models.Post.id == id)
+
+
 
     # post_idx = find_post(id)
 
-    if post_idx is None:
+    if post_idx.first() is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail=f"Post with id: {id} was not found, 404"
@@ -158,24 +173,29 @@ def delete_post_by_id(id: int):
 
     # all_posts.pop(post_idx)
 
+    post_idx.delete(synchronize_session = False)
+    db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 ### UPDATE/PUT Requests ###
 
 @app.put("/posts/{id}", status_code = status.HTTP_200_OK)
-def update_by_id (id: int, post: PostBody) :
+def update_by_id (id: int, post: PostBody, db: Session = Depends(get_db)) :
     # post_idx = find_post(id)
 
-    cursor.execute ("""UPDATE posts SET title = %s, content = %s,
-                    published = %s where id = %s RETURNING *""", 
-                    (post.title, post.content, post.published, str(id)))
+    # cursor.execute ("""UPDATE posts SET title = %s, content = %s,
+    #                 published = %s where id = %s RETURNING *""", 
+    #                 (post.title, post.content, post.published, str(id)))
 
-    post_idx = cursor.fetchone()
+    # post_idx = cursor.fetchone()
 
-    conn.commit()
+    # conn.commit()
 
-    if post_idx is None:
+    post_idx = db.query(models.Post).filter(models.Post.id == id)
+
+    if post_idx.first() is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail=f"Post with id: {id} was not found, 404"
@@ -186,4 +206,7 @@ def update_by_id (id: int, post: PostBody) :
     # dict_post['id'] = id
     # all_posts[post_idx] = dict_post
 
-    return {"new post is udpated as: " : post_idx}
+    post_idx.update(post.model_dump(), synchronize_session = False)
+    db.commit()
+
+    return {"new post is udpated as: " : post_idx.first()}
