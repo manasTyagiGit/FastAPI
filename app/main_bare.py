@@ -6,7 +6,8 @@ from fastapi.params import Body
 app = FastAPI()
 
 post_store = [{"title" : "post1_title", "content" : "post1_content", "id" : 1},
-              {"title" : "post2_title", "content" : "post2_content", "id" : 2}
+              {"title" : "post2_title", "content" : "post2_content", "id" : 2},
+              {"title" : "post3_title", "content" : "post3_content", "id" : 3}
               ]
 
 # SAMPLE API 
