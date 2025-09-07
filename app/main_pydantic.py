@@ -11,8 +11,8 @@ app = FastAPI()
 class Post (BaseModel) :
     title: str
     content: str
-    name: str = "Requestor"                 # defaulted optional
-    published_at: Optional[int] = None      # truly optional
+    name: str = "Requestor"               # defaulted optional
+    published: Optional[bool] = None      # truly optional
 
 
 # We will also connect to the PostGre server in this file, we use psycopg2 for that
@@ -47,3 +47,63 @@ def get_posts() :
     posts = cursor.fetchall()
 
     return {"posts": posts}
+
+
+# R - Read post by id
+@app.get("/posts/{id}", status_code= status.HTTP_200_OK)
+def get_post_by_id (id: int) :
+
+    cursor.execute ("SELECT * FROM posts WHERE id = %s", (id,))                 # new thing we learnt here, to always use a tuple for passing
+    post = cursor.fetchone()
+
+    if not post :
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND,
+                            detail= f"post with id = {id} not found in DB")
+
+    return {"post" : post}
+
+
+# C - Create a post
+@app.post("/posts", status_code= status.HTTP_201_CREATED)
+def create_post(post: Post) :
+    cursor.execute ("INSERT INTO posts(title, content, published) " \
+                    "VALUES (%s, %s, %s) RETURNING *", 
+                    (post.title, post.content, post.published))
+
+    created_post = cursor.fetchone()
+    conn_obj.commit()
+
+    return {"post": created_post}
+
+
+# U - Update post by id
+@app.put ("/posts/{id}", status_code= status.HTTP_200_OK)
+def update_post_by_id (id: int, post: Post):
+    cursor.execute ("UPDATE posts set title = %s, content = %s, " \
+                    "published = %s WHERE ID = %s RETURNING *", 
+                    (post.title, post.content, post.published, str(id)))
+    fetched_post = cursor.fetchone()
+
+    conn_obj.commit()
+
+    if not fetched_post :
+        raise HTTPException (status_code= status.HTTP_404_NOT_FOUND,
+                             detail= f"Post with id = {id} not found")
+    
+    
+    return {"updated_post" : post}
+
+
+# D - Delete post by id
+@app.delete ("/posts/{id}", status_code= status.HTTP_202_ACCEPTED)
+def delete_by_id (id: int) :
+    cursor.execute ("DELETE FROM posts WHERE id = %s RETURNING *", (id,))
+    deleted_post = cursor.fetchone()
+
+    if not deleted_post :
+        raise HTTPException (status_code= status.HTTP_404_NOT_FOUND,
+                             detail= f"Post with id = {id} not found")
+    
+    conn_obj.commit()
+
+    return {"deleted post" : deleted_post}
