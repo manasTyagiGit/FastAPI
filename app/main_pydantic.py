@@ -13,6 +13,7 @@ class Post (BaseModel) :
     content: str
     name: str = "Requestor"               # defaulted optional
     published: Optional[bool] = None      # truly optional
+    id: Optional[int] = None
 
 
 # We will also connect to the PostGre server in this file, we use psycopg2 for that
@@ -66,14 +67,32 @@ def get_post_by_id (id: int) :
 # C - Create a post
 @app.post("/posts", status_code= status.HTTP_201_CREATED)
 def create_post(post: Post) :
+
+    if post.id is not None:
+        cursor.execute ("SELECT * FROM posts WHERE id = %s", (post.id,))
+
+        found = cursor.fetchone()
+
+        if not found :
+            cursor.execute ("INSERT INTO posts(id, title, content, published) " \
+                    "VALUES (%s, %s, %s, %s) RETURNING *", 
+                    (post.id, post.title, post.content, post.published))
+            
+            created_post = cursor.fetchone()
+            conn_obj.commit()
+            return {"post": created_post}
+
+        else :
+            updated_post = update_post_by_id(post.id, post)
+            return {"updated" : updated_post}
+
+
     cursor.execute ("INSERT INTO posts(title, content, published) " \
                     "VALUES (%s, %s, %s) RETURNING *", 
                     (post.title, post.content, post.published))
 
     created_post = cursor.fetchone()
-    conn_obj.commit()
-
-    return {"post": created_post}
+    conn_obj.commit()    
 
 
 # U - Update post by id
