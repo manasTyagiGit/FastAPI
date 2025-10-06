@@ -40,6 +40,13 @@ def getPostById (id: int, conn : Session = Depends(get_db)) :
 # C - Create a new post
 @app.post("/posts", status_code = status.HTTP_201_CREATED)
 def createPost (post: PostBody, conn : Session = Depends(get_db)) :
+
+    existing_post = conn.query(models.Post).filter(models.Post.id == post.id)
+
+    if existing_post.first() :
+        updated_post = updatePostById (post.id, post, conn)
+        return {"updated existing post" : updated_post}
+
     new_post_obj = models.Post(**post.model_dump())        # unpacking a dict
         
 
