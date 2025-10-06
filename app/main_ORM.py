@@ -43,8 +43,9 @@ def createPost (post: PostBody, conn : Session = Depends(get_db)) :
 
     existing_post = conn.query(models.Post).filter(models.Post.id == post.id)
 
-    if post.first() :
-        updatePostById (post.id, post, conn)
+    if existing_post.first() :
+        updated_post = updatePostById (post.id, post, conn)
+        return {"updated existing post" : updated_post}
 
     new_post_obj = models.Post(**post.model_dump())        # unpacking a dict
         
