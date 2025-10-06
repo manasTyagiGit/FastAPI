@@ -7,7 +7,7 @@ from pydantic import BaseModel
 import psycopg2                         # for connection to DB
 from psycopg2.extras import RealDictCursor
 import time
-from . import models
+from . import models, schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 
@@ -16,14 +16,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# class for extension of BaseModel
-class PostBody (BaseModel) :
-    title: str
-    content: str
-    #Defaultable optional
-    published: bool = True
-    #Truly Optional
-    #rating: Optional[int] = None
+
 
 ### CONNECTION TO DATABASE ###
 
@@ -73,7 +66,7 @@ def get_posts() :
     return {"Hey user, posts are" : posts}
 
 @app.post("/posts", status_code= status.HTTP_201_CREATED)
-def create_posts(post: PostBody, db: Session = Depends(get_db)) :
+def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)) :
 
     # post_dict = post.model_dump()
     
@@ -182,7 +175,7 @@ def delete_post_by_id(id: int, db: Session = Depends(get_db)):
 ### UPDATE/PUT Requests ###
 
 @app.put("/posts/{id}", status_code = status.HTTP_200_OK)
-def update_by_id (id: int, post: PostBody, db: Session = Depends(get_db)) :
+def update_by_id (id: int, post: schemas.PostUpdate, db: Session = Depends(get_db)) :
     # post_idx = find_post(id)
 
     # cursor.execute ("""UPDATE posts SET title = %s, content = %s,

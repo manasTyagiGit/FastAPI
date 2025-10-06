@@ -1,0 +1,35 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime
+
+# class for extension of BaseModel
+class PostCreate (BaseModel) :
+    title: str
+    content: str
+    #Defaultable optional
+    published: bool = True
+    #Truly Optional
+    #rating: Optional[int] = None
+
+class PostUpdate (PostCreate) :
+    title: Optional[str] = None
+    content: Optional[str] = None
+    published: Optional[bool] = None
+
+class PostResponse (PostCreate) :
+    id: int
+    created_at: datetime
+    class Config:
+        orm_mode = True 
+
+class UserCreate (BaseModel) :
+    email: EmailStr
+    password: str
+
+class UserResponse (BaseModel) :
+    email: EmailStr
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
