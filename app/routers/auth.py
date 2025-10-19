@@ -14,7 +14,7 @@ router = APIRouter(
     tags = ['Authentication']
 )
 
-@router.post("/", status_code = status.HTTP_202_ACCEPTED)
+@router.post("/", status_code = status.HTTP_202_ACCEPTED, response_model = schemas.TokenInput)
 def user_login (user_cred: OAuth2PasswordRequestForm = Depends(), conn: Session = Depends(get_db)) :
 
     # check is user mail exists in the stored DB table for users

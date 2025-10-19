@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 OAuth2_scheme = OAuth2PasswordBearer(tokenUrl= 'login')
 
 SECRET_KEY = "random12391396193stringfFORHASHINGtheJWTtoken"
-VALID_TIME_MINUTES = 15
+VALID_TIME_MINUTES = 1
 ENCODE_ALGORITHM = "HS256"
 
 def createAccessToken (input: dict) :
