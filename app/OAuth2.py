@@ -17,7 +17,7 @@ def createAccessToken (input: dict) :
 
     expire_time = datetime.now(timezone.utc) + timedelta(minutes=VALID_TIME_MINUTES)
 
-    jwt_token.update ({"expire_timestamp" : int(expire_time.timestamp())})
+    jwt_token.update ({"exp" : int(expire_time.timestamp())})               # use 'exp' only, as it is checked automatically
 
     encoded_jwt_token = jwt.encode (jwt_token, SECRET_KEY, algorithm= ENCODE_ALGORITHM)
 
@@ -49,7 +49,7 @@ def getCurrentUser (token: str = Depends (OAuth2_scheme), conn: Session = Depend
     
     ret_token = verifyAccessToken (token, credentials_exception)
 
-    user = conn.query(models.User).filter(models.User.id == ret_token.id).first()
+    user = conn.query(models.User).filter(models.User.id == ret_token.user_id).first()
     
     return user
 
