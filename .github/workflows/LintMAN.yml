@@ -1,27 +1,51 @@
 # This Workflow is used for Linting the codebase using flake8
 name: LintMAN
+
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened]
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8
-      - name: Run flake8
+
+      - name: Get changed Python files
+        id: files
         run: |
-          flake8 app/ tests/ --count --select=E9,F63,F72 --show-source --statistics
-          flake8 app/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          echo "::group::Changed files"
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.py$' || true)
+          echo "$CHANGED_FILES"
+          echo "::endgroup::"
+
+          # Save the changed files as output for next steps
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run flake8 on changed files
+        if: steps.files.outputs.files != ''
+        run: |
+          echo "Running flake8 on changed files:"
+          echo "${{ steps.files.outputs.files }}"
+          flake8 ${{ steps.files.outputs.files }} --count --select=E9,F63,F72 --show-source --statistics
+          flake8 ${{ steps.files.outputs.files }} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Skip linting (no Python files changed)
+        if: steps.files.outputs.files == ''
+        run: echo "No Python files changed, skipping lint."
