@@ -19,6 +19,7 @@ def create_user(user: schemas.UserCreate, conn: Session = Depends(get_db)) :
 
     user.password = password_hash
 
+    # Unpack the dict to match model fields
     new_user = models.User(**user.model_dump())
 
     conn.add(new_user)
