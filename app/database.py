@@ -8,7 +8,7 @@ SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:password@localhost/fastapi'
 #Creating an engine for connections
 engine = create_engine (SQLALCHEMY_DATABASE_URL)
 
-#To interact with the DB, this is a session, with soem default params
+#To interact with the DB, this is a session, with some default params
 SessionLocal = sessionmaker (autocommit=False, autoflush=False, bind=engine)
 
 #The base class which is extended by other classes to create models for tables,
@@ -22,4 +22,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
