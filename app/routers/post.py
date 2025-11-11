@@ -69,7 +69,9 @@ def updatePostById (id: int, post: schemas.PostUpdate, conn : Session = Depends(
             detail=f"Post with id: {id} was not found, 404"
         )
     
-    updPost.update(post.model_dump(), synchronize_session = False)
+    #updPost.update(post.model_dump(), synchronize_session = False)
+    updPost.update(post.model_dump(exclude_unset=True), synchronize_session=False)
+
     conn.commit()
 
     return updPost.first()   
