@@ -36,7 +36,3 @@ def user_login (user_cred: OAuth2PasswordRequestForm = Depends(), conn: Session 
     # return JWT Token
     return {"access_token" : access_token,
             "type" : "Bearer"}
-    
-     
-
-
