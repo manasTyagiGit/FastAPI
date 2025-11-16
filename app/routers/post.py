@@ -5,6 +5,11 @@ from .. import schemas, utils, models, OAuth2
 from ..database import get_db
 from sqlalchemy.orm import Session
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
+
 
 # Setting router
 router = APIRouter(
@@ -32,7 +37,9 @@ def getPostById (id: int, conn : Session = Depends(get_db)) :
 
 # C - Create a new post
 @router.post("/", status_code = status.HTTP_201_CREATED, response_model= schemas.PostResponse)
-def createPost (post: schemas.PostCreate, conn : Session = Depends(get_db), current_user: int  = Depends(OAuth2.getCurrentUser)) :
+def createPost (post: schemas.PostCreate, conn : Session = Depends(get_db), current_user: models.User  = Depends(OAuth2.getCurrentUser)) :
+    #LOGGER.info(f"Current User ID: {current_user.id}, Username: {current_user.email}")
+
     new_post_obj = models.Post(**post.model_dump())        # unpacking a dict
         
 
