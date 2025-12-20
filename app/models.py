@@ -1,6 +1,5 @@
 from .database import Base
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
-from sqlalchemy.sql.expression import text
 from sqlalchemy.sql import func
 
 class Post(Base) :
