@@ -19,6 +19,7 @@ class PostUpdate (PostCreate) :
 class PostResponse (PostCreate) :
     id: int
     created_at: datetime
+    owner_id: int
     # The below is used to make sure Pydantic can interact
     # with the returned Class objects by ORM logic, as 
     # Pydantic generally interacts with dict objects
