@@ -19,20 +19,29 @@ router = APIRouter(
 
 # R - read all posts
 @router.get ("/", status_code= status.HTTP_200_OK, response_model= List[schemas.PostResponse])
-def getAllPosts(conn: Session = Depends(get_db)) :
-    posts = conn.query(models.Post).all()
+def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser)) :
+
+    posts = conn.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
     return posts
 
 # R - read a post by id
 @router.get("/{id}", status_code= status.HTTP_200_OK, response_model= schemas.PostResponse)
-def getPostById (id: int, conn : Session = Depends(get_db)) :
-    post = conn.query(models.Post).filter(models.Post.id == id)
+def getPostById (id: int, conn : Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser)) :
+    post_query = conn.query(models.Post).filter(models.Post.id == id)
 
-    if not post.first() :
+    post = post_query.first()
+
+    if not post :
         raise HTTPException (status_code= status.HTTP_404_NOT_FOUND,
                              detail= f"Post with id = {id} not found")
+
+    elif post.owner_id != current_user.id :
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail=f"Post with id: {id} is not owned by you"
+        )
     
-    return post.first()
+    return post
 
 
 # C - Create a new post
