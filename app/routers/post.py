@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status, Response, APIRouter
-from typing import List
+from typing import List, Optional
 from .. import schemas, utils, models, OAuth2
+from sqlalchemy import and_
 
 from ..database import get_db
 from sqlalchemy.orm import Session
@@ -19,9 +20,20 @@ router = APIRouter(
 
 # R - read all posts
 @router.get ("/", status_code= status.HTTP_200_OK, response_model= List[schemas.PostResponse])
-def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser)) :
+def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser), limit: int = 3, skip: int = 0, search: Optional[str] = "") :
 
-    posts = conn.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    base_query = conn.query(models.Post)
+    if search :
+        base_query = base_query.filter(and_(
+            models.Post.owner_id == current_user.id, 
+            models.Post.title.ilike(f"%{search}%")
+            )
+        )
+    
+    else :
+        base_query = base_query.filter(models.Post.owner_id == current_user.id)
+
+    posts = base_query.limit(limit).offset(skip).all()
     return posts
 
 # R - read a post by id
