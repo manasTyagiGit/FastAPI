@@ -4,14 +4,15 @@ from . import schemas, database, models
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from .config import vars
 
 # For protecting routes by making FastAPI expect token in Authorization header, 
 # and telling FastAPI -> User to use login/ to get token
 OAuth2_scheme = OAuth2PasswordBearer(tokenUrl= 'login')
 
-SECRET_KEY = "random12391396193stringfFORHASHINGtheJWTtoken"
-VALID_TIME_MINUTES = 60
-ENCODE_ALGORITHM = "HS256"
+SECRET_KEY = vars.secret_key
+VALID_TIME_MINUTES = vars.access_token_expire_minutes
+ENCODE_ALGORITHM = vars.algorithm
 
 def createAccessToken (input: dict) :
 
