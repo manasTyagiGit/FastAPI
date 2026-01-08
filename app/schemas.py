@@ -16,9 +16,19 @@ class PostUpdate (PostCreate) :
     content: Optional[str] = None
     published: Optional[bool] = None
 
+class UserResponse (BaseModel) :
+    email: EmailStr
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
 class PostResponse (PostCreate) :
     id: int
     created_at: datetime
+    owner_id: int
+    owner: UserResponse
     # The below is used to make sure Pydantic can interact
     # with the returned Class objects by ORM logic, as 
     # Pydantic generally interacts with dict objects
@@ -28,14 +38,6 @@ class PostResponse (PostCreate) :
 class UserCreate (BaseModel) :
     email: EmailStr
     password: str
-
-class UserResponse (BaseModel) :
-    email: EmailStr
-    id: int
-    created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 class UserLogin (BaseModel) :
     email: EmailStr
