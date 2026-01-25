@@ -49,3 +49,7 @@ class TokenInput (BaseModel) :
 
 class TokenData (BaseModel):
     user_id : Optional[int] = None
+
+class Like(BaseModel):
+    post_id: int
+    dir: int  # 1 for like, 0 for unlike
