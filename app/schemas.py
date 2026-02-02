@@ -33,7 +33,15 @@ class PostResponse (PostCreate) :
     # with the returned Class objects by ORM logic, as 
     # Pydantic generally interacts with dict objects
     class Config:
-        orm_mode = True 
+        orm_mode = True
+
+class PostOut (BaseModel):
+    Post: PostResponse
+    likes: int
+
+    class Config:
+        orm_mode = True
+
 
 class UserCreate (BaseModel) :
     email: EmailStr
