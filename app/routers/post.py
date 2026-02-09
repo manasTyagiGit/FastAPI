@@ -21,16 +21,6 @@ router = APIRouter(
 # R - read all posts
 @router.get ("/", status_code= status.HTTP_200_OK, response_model= List[schemas.PostOut])
 def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser), limit: int = 10, skip: int = 0, search: Optional[str] = "") :
-                                                                                                                                                                                                
-    # if search :
-    #     base_query = base_query.filter(and_(
-    #         models.Post.owner_id == current_user.id, 
-    #         models.Post.title.ilike(f"%{search}%")
-    #         )
-    #     )
-    
-    # else :
-    #     base_query = base_query.filter(models.Post.owner_id == current_user.id)
 
     base_query = (
         conn.query(
@@ -55,10 +45,6 @@ def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Dep
 # R - read a post by id
 @router.get("/{id}", status_code= status.HTTP_200_OK, response_model= schemas.PostOut)
 def getPostById (id: int, conn : Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser)) :
-
-    # post_query = conn.query(models.Post).filter(models.Post.id == id)
-
-    # post = post_query.first()
 
     post = (
         conn.query(
