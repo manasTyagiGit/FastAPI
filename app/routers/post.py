@@ -42,6 +42,8 @@ def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Dep
         .group_by(models.Post.id)
     )
 
+    print (f"base query : {base_query}")
+
     results = base_query.limit(limit).offset(skip).all()
 
     # Transform list of tuples into list of dicts matching PostOut
@@ -51,23 +53,37 @@ def getAllPosts(conn: Session = Depends(get_db), current_user: models.User = Dep
     ]
 
 # R - read a post by id
-@router.get("/{id}", status_code= status.HTTP_200_OK, response_model= schemas.PostResponse)
+@router.get("/{id}", status_code= status.HTTP_200_OK, response_model= schemas.PostOut)
 def getPostById (id: int, conn : Session = Depends(get_db), current_user: models.User = Depends(OAuth2.getCurrentUser)) :
-    post_query = conn.query(models.Post).filter(models.Post.id == id)
 
-    post = post_query.first()
+    # post_query = conn.query(models.Post).filter(models.Post.id == id)
+
+    # post = post_query.first()
+
+    post = (
+        conn.query(
+            models.Post,
+            func.count(models.Like.post_id).label("likes"),
+        )
+        .join(models.Like, models.Like.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post.id)
+    )
+ 
+    post = post.filter(models.Post.id == id).first()
 
     if not post :
         raise HTTPException (status_code= status.HTTP_404_NOT_FOUND,
                              detail= f"Post with id = {id} not found")
+    
+    postRow, likes = post
 
-    elif post.owner_id != current_user.id :
+    if postRow.owner_id != current_user.id :
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail=f"Post with id: {id} is not owned by you"
         )
     
-    return post
+    return {"Post" : postRow, "likes" : likes}
 
 
 # C - Create a new post
