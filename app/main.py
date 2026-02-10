@@ -3,8 +3,22 @@ from .database import engine
 from . import models
 from .routers import post, user, auth, like
 
+# Importing Cross Origin Resource Sharing = CORS
+from fastapi.middleware.cors import CORSMiddleware
+
 # app is an object of FastAPI that handles all operations
 app = FastAPI()
+
+# Setting up CORS, Middleware runs before every functions
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # To create all models via the engine in database.py
 models.Base.metadata.create_all(bind=engine)
