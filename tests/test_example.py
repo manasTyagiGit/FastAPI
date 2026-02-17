@@ -20,26 +20,31 @@ def test_multiply(a, b, res) :
 
 ### Tests for class BankAccount ###
 
-def test_init_bank_account() :
-    bank_account = BankAccount(120)
+## Default value fixture
+@pytest.fixture
+def init_default_bank_account() :
+    return BankAccount()
+
+# Parameterised Fixture
+@pytest.fixture
+def bank_account() :
+    return BankAccount(120)
+
+def test_init_bank_account(bank_account) :
     assert bank_account.balance == 120
 
-def test_default_init_bank_account() :
-    bank_account = BankAccount()
-    assert bank_account.balance == 0
+def test_default_init_bank_account(init_default_bank_account) :
+    assert init_default_bank_account.balance == 0
 
-def test_withdraw() :
-    bank_account = BankAccount(120)
+def test_withdraw(bank_account) :
     bank_account.withdraw(69)
     assert bank_account.balance == 51
 
-def test_deposit():
-    bank_account = BankAccount(120)
+def test_deposit(bank_account):
     bank_account.deposit(81)
     assert bank_account.balance == 201
 
-def test_interest():
-    bank_account = BankAccount(120)
+def test_interest(bank_account):
     bank_account.collect_interest()
 
     assert int(bank_account.balance) == 132
