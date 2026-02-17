@@ -1,5 +1,5 @@
 import pytest
-from app.example import add, multiply, BankAccount
+from app.example import add, multiply, BankAccount, InsufficientFunds
 
 @pytest.mark.parametrize("a, b, res", [
     (2, 3, 5), (5, 5, 10), (-1, -1, -2)
@@ -68,3 +68,7 @@ def test_transaction(init_default_bank_account, deposited, withdrawn, remaining)
     init_default_bank_account.withdraw(withdrawn)
 
     assert init_default_bank_account.balance == remaining
+
+def test_insufficient_funds(bank_account) :
+    with pytest.raises(InsufficientFunds) :
+        assert bank_account.withdraw(121)
